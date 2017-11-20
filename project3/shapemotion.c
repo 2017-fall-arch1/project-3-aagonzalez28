@@ -18,7 +18,7 @@
 
 
 AbRect rect10 = {abRectGetBounds, abRectCheck, {10,10}}; /**< 10x10 rectangle */
-AbRArrow rightArrow = {abRArrowGetBounds, abRArrowCheck, 30};
+AbRect rect = {abRectGetBounds, abRectCheck, {2,10}};
 
 AbRectOutline fieldOutline = {	/* playing field */
   abRectOutlineGetBounds, abRectOutlineCheck,   
@@ -26,10 +26,10 @@ AbRectOutline fieldOutline = {	/* playing field */
 };
 
 Layer layer4 = {
-  (AbShape *)&rightArrow,
-  {(screenWidth/2)+80, (screenHeight/2)+20}, /**< bit below & right of center */
-  {10,5},{50,10},				    /* last & next pos */
-  COLOR_RED,
+  (AbShape *)&rect,
+  {(screenWidth/2)+50, (screenHeight/2)+5}, /**< bit below & right of center */
+  {0,5},{0,5},				    /* last & next pos */
+  COLOR_WHITE,
   0
 };
   
@@ -51,9 +51,17 @@ Layer fieldLayer = {		/* playing field as a layer */
   &layer3
 };
 
+Layer layer2 = {
+  (AbShape *)&rect,
+  {screenWidth/2-50, screenHeight/2+5},
+  {0,5},{0,5},
+  COLOR_GREEN,
+  &fieldLayer,
+};
+
 Layer layer1 = {		/**< Layer with a red square */
-  (AbShape *)&rect10,
-  {screenWidth/2, screenHeight/2}, /**< center */
+  (AbShape *)&rect,
+  {screenWidth/2-50, screenHeight/2+5}, /**< center */
   {0,0}, {0,0},				    /* last & next pos */
   COLOR_RED,
   &fieldLayer,
