@@ -13,6 +13,7 @@
 #include <p2switches.h>
 #include <shape.h>
 #include <abCircle.h>
+#include <string.h>
 
 #define GREEN_LED BIT6
 
@@ -20,26 +21,30 @@
 AbRect rect10 = {abRectGetBounds, abRectCheck, {10,10}}; /**< 10x10 rectangle */
 AbRect rect = {abRectGetBounds, abRectCheck, {2,10}};
 
+u_char player1Score = '0';
+u_char player2Score = '0';
+static int state = 0;
+
 AbRectOutline fieldOutline = {	/* playing field */
   abRectOutlineGetBounds, abRectOutlineCheck,   
   {screenWidth/2 - 10, screenHeight/2 - 10}
 };
 
-Layer layer4 = {
-  (AbShape *)&rect,
-  {(screenWidth/2)+50, (screenHeight/2)+5}, /**< bit below & right of center */
-  {0,5},{0,5},				    /* last & next pos */
+Layer layer3 = {
+  (AbShape *)&circle4,
+  {(screenWidth/2), (screenHeight/2}, /**< bit below & right of center */
+  {0,0},{0,0},				    /* last & next pos */
   COLOR_WHITE,
-  0
+  &fieldLayer,
 };
   
 
-Layer layer3 = {		/**< Layer with an orange circle */
-  (AbShape *)&circle8,
-  {(screenWidth/2)+10, (screenHeight/2)+5}, /**< bit below & right of center */
+Layer layer1 = {		/**< Layer with an orange circle */
+  (AbShape *)&rect,
+  {(screenWidth/2)+50, (screenHeight/2)+5}, /**< bit below & right of center */
   {0,0}, {0,0},				    /* last & next pos */
   COLOR_VIOLET,
-  &layer4,
+  &layer3,
 };
 
 
@@ -48,16 +53,9 @@ Layer fieldLayer = {		/* playing field as a layer */
   {screenWidth/2, screenHeight/2},/**< center */
   {0,0}, {0,0},				    /* last & next pos */
   COLOR_BLACK,
-  &layer3
+  0
 };
 
-Layer layer2 = {
-  (AbShape *)&rect,
-  {screenWidth/2-50, screenHeight/2+5},
-  {0,5},{0,5},
-  COLOR_GREEN,
-  &fieldLayer,
-};
 
 Layer layer1 = {		/**< Layer with a red square */
   (AbShape *)&rect,
@@ -67,9 +65,9 @@ Layer layer1 = {		/**< Layer with a red square */
   &fieldLayer,
 };
 
-Layer layer0 = {		/**< Layer with an orange circle */
-  (AbShape *)&circle14,
-  {(screenWidth/2)+10, (screenHeight/2)+5}, /**< bit below & right of center */
+Layer layer2 = {		/**< Layer with an orange circle */
+  (AbShape *)&rect,
+  {(screenWidth/2)-50, (screenHeight/2)+5}, /**< bit below & right of center */
   {0,0}, {0,0},				    /* last & next pos */
   COLOR_ORANGE,
   &layer1,
@@ -86,9 +84,9 @@ typedef struct MovLayer_s {
 } MovLayer;
 
 /* initial value of {0,0} will be overwritten */
-MovLayer ml3 = { &layer3, {1,1}, 0 }; /**< not all layers move */
-MovLayer ml1 = { &layer1, {1,2}, &ml3 }; 
-MovLayer ml0 = { &layer0, {2,1}, &ml1 }; 
+MovLayer ml3 = { &layer3, {2,4}, 0 }; /**< not all layers move */
+MovLayer ml1 = { &layer1, {0,3}, 0 }; 
+MovLayer ml2 = { &layer2, {0,3}, 0 }; 
 
 void movLayerDraw(MovLayer *movLayers, Layer *layers)
 {
@@ -148,7 +146,7 @@ void mlAdvance(MovLayer *ml, Region *fence)
       if ((shapeBoundary.topLeft.axes[axis] < fence->topLeft.axes[axis]) ||
 	  (shapeBoundary.botRight.axes[axis] > fence->botRight.axes[axis]) ) {
 	int velocity = ml->velocity.axes[axis] = -ml->velocity.axes[axis];
-	newPos.axes[axis] += (2*velocity);
+	newPos.axes[axis] += (10*velocity); ///////////////////////////////////////////////////////////////////////
       }	/**< if outside of fence */
     } /**< for axis */
     ml->layer->posNext = newPos;
