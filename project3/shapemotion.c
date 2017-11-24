@@ -41,7 +41,7 @@ Layer layer3 = {
 
 Layer layer1 = {		/**< Layer with an orange circle */
   (AbShape *)&rect,
-  {(screenWidth/2)+50, (screenHeight/2)+5}, /**< bit below & right of center */
+  {(screenWidth/2)-50, (screenHeight/2)+5}, /**< bit below & right of center */
   {0,0}, {0,0},				    /* last & next pos */
   COLOR_VIOLET,
   &layer3,
@@ -57,21 +57,14 @@ Layer fieldLayer = {		/* playing field as a layer */
 };
 
 
-Layer layer1 = {		/**< Layer with a red square */
+Layer layer2 = {		/**< Layer with a red square */
   (AbShape *)&rect,
-  {screenWidth/2-50, screenHeight/2+5}, /**< center */
+  {screenWidth/2+50, screenHeight/2+5}, /**< center */
   {0,0}, {0,0},				    /* last & next pos */
   COLOR_RED,
-  &fieldLayer,
-};
-
-Layer layer2 = {		/**< Layer with an orange circle */
-  (AbShape *)&rect,
-  {(screenWidth/2)-50, (screenHeight/2)+5}, /**< bit below & right of center */
-  {0,0}, {0,0},				    /* last & next pos */
-  COLOR_ORANGE,
   &layer1,
 };
+
 
 /** Moving Layer
  *  Linked list of layer references
@@ -142,11 +135,11 @@ void mlAdvance(MovLayer *ml, Region *fence)
   for (; ml; ml = ml->next) {
     vec2Add(&newPos, &ml->layer->posNext, &ml->velocity);
     abShapeGetBounds(ml->layer->abShape, &newPos, &shapeBoundary);
-    for (axis = 0; axis < 2; axis ++) {
+    for (axis = 1; axis < 2; axis ++) {
       if ((shapeBoundary.topLeft.axes[axis] < fence->topLeft.axes[axis]) ||
 	  (shapeBoundary.botRight.axes[axis] > fence->botRight.axes[axis]) ) {
 	int velocity = ml->velocity.axes[axis] = -ml->velocity.axes[axis];
-	newPos.axes[axis] += (10*velocity); ///////////////////////////////////////////////////////////////////////
+	newPos.axes[axis] += (2*velocity); ///////////////////////////////////////////////////////////////////////
       }	/**< if outside of fence */
     } /**< for axis */
     ml->layer->posNext = newPos;
