@@ -30,38 +30,35 @@ AbRectOutline fieldOutline = {	/* playing field */
   {screenWidth/2 - 10, screenHeight/2 - 10}
 };
 
-Layer layer3 = {
-  (AbShape *)&circle4,
-  {(screenWidth/2), (screenHeight/2}, /**< bit below & right of center */
-  {0,0},{0,0},				    /* last & next pos */
-  COLOR_WHITE,
-  &fieldLayer,
-};
-  
-
-Layer layer1 = {		/**< Layer with an orange circle */
-  (AbShape *)&rect,
-  {(screenWidth/2)-50, (screenHeight/2)+5}, /**< bit below & right of center */
-  {0,0}, {0,0},				    /* last & next pos */
-  COLOR_VIOLET,
-  &layer3,
-};
-
-
-Layer fieldLayer = {		/* playing field as a layer */
-  (AbShape *) &fieldOutline,
-  {screenWidth/2, screenHeight/2},/**< center */
-  {0,0}, {0,0},				    /* last & next pos */
-  COLOR_BLACK,
+Layer fieldLayer = { /* this layer acts as a field */
+  (AbShape *)&fieldOutline,
+  {screenWidth/2, screenHeight/2},
+  {0,0}, {0,0},
+  COLOR_GREEN,
   0
 };
 
+Layer layer3 = {		/**< Layer with an white circle */
+  (AbShape *)&circle4,
+  {(screenWidth/2), (screenHeight/2)}, /**<center */
+  {0,0}, {0,0},				    /* last & next pos */
+  COLOR_WHITE,
+  &fieldLayer,
+};
 
-Layer layer2 = {		/**< Layer with a red square */
-  (AbShape *)&rect,
-  {screenWidth/2+50, screenHeight/2+5}, /**< center */
+Layer layer1 = {		/**< Layer with a blue rect */
+  (AbShape *) &rect,
+  {screenWidth/2-50, screenHeight/2+5},     //current pos
   {0,0}, {0,0},				    /* last & next pos */
   COLOR_RED,
+  &layer3
+};
+
+Layer layer2 = {		/**< Layer with a blue rect */
+  (AbShape *)&rect,
+  {screenWidth/2+50, screenHeight/2+5}, //current pos
+  {0,0}, {0,0},				    /* last & next pos */
+  COLOR_YELLOW,
   &layer1,
 };
 
@@ -146,6 +143,40 @@ void mlAdvance(MovLayer *ml, Region *fence)
   } /**< for ml */
 }
 
+void moveBall(MovLayer *ml, Region *fence1, MovLayer *ml2, MovLayer *ml3)
+{
+  Vec2 newPos;
+  u_char axis;
+  Region shapeBoundary;
+  int velocity;
+  for (; ml; ml = ml->next) {
+    vec2Add(&newPos, &ml->layer->posNext, &ml->velocity);
+    abShapeGetBounds(ml->layer->abShape, &newPos, &shapeBoundary);
+    for (axis = 0; axis < 2; axis ++){
+      if((shapeBoundary.topLeft.axes[axis] < fence1->topLeft.axes[axis]) ||
+	 (shapeBoundary.botRight.axes[axis] > fence1->botRight.axes[axis]) ||
+	 (abShapeCheck(ml3->layer->abShape, &ml3->layer->posNext, &ml->layer->posNext)) ||
+	 (abShapeCheck(ml2->layer->abShape, &ml2->layer->posNext, &ml->layer->posNext))){
+	velocity = ml->velocity.axes[axis] = -ml->velocity.axes[axis];
+	newPos.axes[axis] += (2*velocity);
+      }
+      else if((shapeBoundary.topLeft.axes[0] < fence1->topLeft.axes[0])){
+	newPos.axes[0] = screenWidth/2;
+	newPos.axes[1] = screenHeight/2;
+	player2Score = player2Score - 255;
+      }
+      else if((shapeBoundary.botRight.axes[0] > fence1->botRight.axes[0])){
+	newPos.axes[0] = screenWidth/2;
+	newPos.axes[1] = screenHeight/2;
+	player1Score = player1Score - 255;
+      }
+      if(player1Score == '5' || player2Score == '5'){
+	state = 1;
+      }
+    } /**< for axis */
+    ml->layer->posNext = newPos;
+  } /**< for ml */
+}
 
 u_int bgColor = COLOR_BLUE;     /**< The background color */
 int redrawScreen = 1;           /**< Boolean for whether screen needs to be redrawn */
@@ -168,8 +199,8 @@ void main()
 
   shapeInit();
 
-  layerInit(&layer0);
-  layerDraw(&layer0);
+  layerInit(&layer2);
+  layerDraw(&layer2);
 
 
   layerGetBounds(&fieldLayer, &fieldFence);
@@ -186,7 +217,9 @@ void main()
     }
     P1OUT |= GREEN_LED;       /**< Green led on when CPU on */
     redrawScreen = 0;
-    movLayerDraw(&ml0, &layer0);
+    movLayerDraw(&ml3, &layer2);
+    movLayerDraw(&ml2, &layer2);
+    movLayerDraw(&ml1, &layer2);
   }
 }
 
@@ -197,7 +230,7 @@ void wdt_c_handler()
   P1OUT |= GREEN_LED;		      /**< Green LED on when cpu on */
   count ++;
   if (count == 15) {
-    mlAdvance(&ml0, &fieldFence);
+    mlAdvance(&ml2, &fieldFence);
     if (p2sw_read())
       redrawScreen = 1;
     count = 0;
