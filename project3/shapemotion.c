@@ -34,7 +34,7 @@ Layer fieldLayer = { /* this layer acts as a field */
   (AbShape *)&fieldOutline,
   {screenWidth/2, screenHeight/2},
   {0,0}, {0,0},
-  COLOR_GREEN,
+  COLOR_BLACK,
   0
 };
 
@@ -42,7 +42,7 @@ Layer layer3 = {		/**< Layer with an white circle */
   (AbShape *)&circle4,
   {(screenWidth/2), (screenHeight/2)}, /**<center */
   {0,0}, {0,0},				    /* last & next pos */
-  COLOR_WHITE,
+  COLOR_YELLOW,
   &fieldLayer,
 };
 
@@ -170,6 +170,14 @@ void moveBall(MovLayer *ml, Region *fence1, MovLayer *ml2, MovLayer *ml3)
 	newPos.axes[1] = screenHeight/2;
 	player1Score = player1Score - 255;
       }
+      else if((abShapeCheck(ml2->layer->abShape, &ml2->layer->posNext, &ml->layer->posNext))){
+	velocity = ml->velocity.axes[axis] = -ml->velocity.axes[axis];
+	newPos.axes[axis] += (2*velocity);
+      }
+      else if((abShapeCheck(ml3->layer->abShape, &ml3->layer->posNext, &ml->layer->posNext))){
+	velocity = ml->velocity.axes[axis] = -ml->velocity.axes[axis];
+	newPos.axes[axis] += (2*velocity);
+      }
       if(player1Score == '5' || player2Score == '5'){
 	state = 1;
       }
@@ -178,7 +186,7 @@ void moveBall(MovLayer *ml, Region *fence1, MovLayer *ml2, MovLayer *ml3)
   } /**< for ml */
 }
 
-u_int bgColor = COLOR_BLACK;     /**< The background color */
+u_int bgColor = COLOR_WHITE;     /**< The background color */
 int redrawScreen = 1;           /**< Boolean for whether screen needs to be redrawn */
 
 Region fieldFence;		/**< fence around playing field  */
@@ -229,7 +237,7 @@ void wdt_c_handler()
   static short count = 0;
   P1OUT |= GREEN_LED;		      /**< Green LED on when cpu on */
   count ++;
-  if (count == 15) {
+  if (count == 20) {
     mlAdvance(&ml2, &fieldFence);
     if (p2sw_read())
       redrawScreen = 1;
