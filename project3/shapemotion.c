@@ -124,7 +124,8 @@ void movLayerDraw(MovLayer *movLayers, Layer *layers)
  *  \param ml The moving shape to be advanced
  *  \param fence The region which will serve as a boundary for ml
  */
-void mlAdvance(MovLayer *ml, Region *fence)
+
+/**void mlAdvance(MovLayer *ml, Region *fence)
 {
   Vec2 newPos;
   u_char axis;
@@ -136,12 +137,13 @@ void mlAdvance(MovLayer *ml, Region *fence)
       if ((shapeBoundary.topLeft.axes[axis] < fence->topLeft.axes[axis]) ||
 	  (shapeBoundary.botRight.axes[axis] > fence->botRight.axes[axis]) ) {
 	int velocity = ml->velocity.axes[axis] = -ml->velocity.axes[axis];
-	newPos.axes[axis] += (2*velocity); ///////////////////////////////////////////////////////////////////////
+	newPos.axes[axis] += (2*velocity);
       }	/**< if outside of fence */
-    } /**< for axis */
-    ml->layer->posNext = newPos;
+  /**  } /**< for axis */
+  /**  ml->layer->posNext = newPos;
   } /**< for ml */
-}
+*//}
+
 
 void moveBall(MovLayer *ml, Region *fence1, MovLayer *ml2, MovLayer *ml3)
 {
@@ -154,7 +156,7 @@ void moveBall(MovLayer *ml, Region *fence1, MovLayer *ml2, MovLayer *ml3)
     abShapeGetBounds(ml->layer->abShape, &newPos, &shapeBoundary);
     for (axis = 0; axis < 2; axis ++){
       if((shapeBoundary.topLeft.axes[axis] < fence1->topLeft.axes[axis]) ||
-	 (shapeBoundary.botRight.axes[axis] > fence1->botRight.axes[axis]))){
+	 (shapeBoundary.botRight.axes[axis] > fence1->botRight.axes[axis])){
 	velocity = ml->velocity.axes[axis] = -ml->velocity.axes[axis];
 	newPos.axes[axis] += (2*velocity);
       }
@@ -238,10 +240,8 @@ void main()
 
   configureClocks();
   lcd_init();
-  shapeInit();
-  p2sw_init(1);
+  p2sw_init(15);
 
-  shapeInit();
 
   layerInit(&layer2);
   layerDraw(&layer2);
@@ -273,13 +273,44 @@ void main()
 void wdt_c_handler()
 {
   static short count = 0;
-  P1OUT |= GREEN_LED;		      /**< Green LED on when cpu on */
+  P1OUT |= GREEN_LED;        /**< Green LED on when cpu on */
   count ++;
-  if (count == 20) {
-    mlAdvance(&ml2, &fieldFence);
-    if (p2sw_read())
-      redrawScreen = 1;
+  
+  u_int switches = p2sw_read();
+    if(count == 10){                /** 15 Interrups per second*/
+    switch(state){
+      
+      case 0:
+        moveBall(&ml3, &fieldFence, &ml1, &ml2);
+        break;
+        
+      case 1:
+        layerDraw(&layer2);
+        
+        if(player1Score > player2Score)
+          drawString5x7(28, 50, "Red Wins!", COLOR_RED, COLOR_BLACK);
+        
+        else if(player1Score < player2Score)
+          drawString5x7(28, 50, "Black Wins!", COLOR_BLUE, COLOR_BLACK);
+        
+        break;
+    }
+    
+    if(switches & (1<<3)){
+      moveUp(&ml2, &fieldFence);
+    }
+    if(switches & (1<<2)){
+      moveDown(&ml2, &fieldFence);
+    }
+    if(switches & (1<<1)){
+      moveUp(&ml1, &fieldFence);
+    }
+    if(switches & (1<<0)){
+      moveDown(&ml1, &fieldFence);
+    }
+    
+    redrawScreen = 1;
     count = 0;
   } 
-  P1OUT &= ~GREEN_LED;		    /**< Green LED off when cpu off */
+    P1OUT &= ~GREEN_LED;      /**< Green LED off when cpu off */
 }
