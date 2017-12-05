@@ -130,7 +130,7 @@ void mlAdvance(MovLayer *ml, Region *fence)
   u_char axis;
   Region shapeBoundary;
   for (; ml; ml = ml->next) {
-    vec2Add(&newPos, &ml->layer->posNext, &ml->velocity);
+    vec2ASub(&newPos, &ml->layer->posNext, &ml->velocity);
     abShapeGetBounds(ml->layer->abShape, &newPos, &shapeBoundary);
     for (axis = 1; axis < 2; axis ++) {
       if ((shapeBoundary.topLeft.axes[axis] < fence->topLeft.axes[axis]) ||
@@ -154,9 +154,7 @@ void moveBall(MovLayer *ml, Region *fence1, MovLayer *ml2, MovLayer *ml3)
     abShapeGetBounds(ml->layer->abShape, &newPos, &shapeBoundary);
     for (axis = 0; axis < 2; axis ++){
       if((shapeBoundary.topLeft.axes[axis] < fence1->topLeft.axes[axis]) ||
-	 (shapeBoundary.botRight.axes[axis] > fence1->botRight.axes[axis]) ||
-	 (abShapeCheck(ml3->layer->abShape, &ml3->layer->posNext, &ml->layer->posNext)) ||
-	 (abShapeCheck(ml2->layer->abShape, &ml2->layer->posNext, &ml->layer->posNext))){
+	 (shapeBoundary.botRight.axes[axis] > fence1->botRight.axes[axis]))){
 	velocity = ml->velocity.axes[axis] = -ml->velocity.axes[axis];
 	newPos.axes[axis] += (2*velocity);
       }
@@ -181,6 +179,44 @@ void moveBall(MovLayer *ml, Region *fence1, MovLayer *ml2, MovLayer *ml3)
       if(player1Score == '5' || player2Score == '5'){
 	state = 1;
       }
+    } /**< for axis */
+    ml->layer->posNext = newPos;
+  } /**< for ml */
+}
+
+void moveUp(MovLayer *ml, Region *fence)
+{
+  Vec2 newPos;
+  u_char axis;
+  Region shapeBoundary;
+  for (; ml; ml = ml->next) {
+    vec2Sub(&newPos, &ml->layer->posNext, &ml->velocity);
+    abShapeGetBounds(ml->layer->abShape, &newPos, &shapeBoundary);
+    for (axis = 1; axis < 2; axis ++) {
+      if ((shapeBoundary.topLeft.axes[axis] < fence->topLeft.axes[axis]) ||      //handles a collision
+	  (shapeBoundary.botRight.axes[axis] > fence->botRight.axes[axis]) ) {
+	int velocity = ml->velocity.axes[axis];
+	newPos.axes[axis] += (2*velocity);
+      }	
+    } /**< for axis */
+    ml->layer->posNext = newPos;
+  } /**< for ml */
+}
+
+void moveDown(MovLayer *ml, Region *fence)
+{
+  Vec2 newPos;
+  u_char axis;
+  Region shapeBoundary;
+  for (; ml; ml = ml->next) {
+    vec2Add(&newPos, &ml->layer->posNext, &ml->velocity);
+    abShapeGetBounds(ml->layer->abShape, &newPos, &shapeBoundary);
+    for (axis = 1; axis < 2; axis ++) {
+      if ((shapeBoundary.topLeft.axes[axis] < fence->topLeft.axes[axis]) ||    //handles when a collision
+	  (shapeBoundary.botRight.axes[axis] > fence->botRight.axes[axis]) ) {
+	int velocity = -ml->velocity.axes[axis];
+	newPos.axes[axis] += (2*velocity);
+      }	
     } /**< for axis */
     ml->layer->posNext = newPos;
   } /**< for ml */
@@ -216,6 +252,8 @@ void main()
 
   enableWDTInterrupts();      /**< enable periodic interrupt */
   or_sr(0x8);	              /**< GIE (enable interrupts) */
+  
+  u_int switches = p2sw_read();
 
 
   for(;;) { 
