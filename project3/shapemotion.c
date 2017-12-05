@@ -178,7 +178,7 @@ void moveBall(MovLayer *ml, Region *fence1, MovLayer *ml2, MovLayer *ml3)
   } /**< for ml */
 }
 
-u_int bgColor = COLOR_BLUE;     /**< The background color */
+u_int bgColor = COLOR_BLACK;     /**< The background color */
 int redrawScreen = 1;           /**< Boolean for whether screen needs to be redrawn */
 
 Region fieldFence;		/**< fence around playing field  */
